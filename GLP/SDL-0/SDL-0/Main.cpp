@@ -3,11 +3,14 @@
 #include <glew.h>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <math.h>
 
 using namespace std;
 
 #define GLEW_STATIC
 
+float shiftingSpeed = 90.00f;
 
 struct HSV_Struct
 {
@@ -56,7 +59,7 @@ RGB_Struct HSVToRGB(HSV_Struct HSVColor)
 	float X = _stepSix;
 	*/
 
-	float X = C * (1 - std::abs((std::fmod((HSVColor.hue / 60), 2) - 1)));
+	float X = C * (1 - abs((fmod((HSVColor.hue / 60), 2) - 1)));
 	float m = HSVColor.value - C;
 
 	if (HSVColor.hue >= 0 && HSVColor.hue < 60)
@@ -109,10 +112,10 @@ HSV_Struct RGBToHSV(RGB_Struct RGBColor)
 {
 	HSV_Struct _temp = HSV_Struct{ 0.0f, 0.0f, 0.0f};
 
-	float Cmax = std::max(RGBColor.red, RGBColor.green);
-	Cmax = std::max(RGBColor.blue, Cmax);
-	float Cmin = std::min(RGBColor.red, RGBColor.green);
-	Cmin = std::min(RGBColor.blue, Cmin);
+	float Cmax = max(RGBColor.red, RGBColor.green);
+	Cmax = max(RGBColor.blue, Cmax);
+	float Cmin = min(RGBColor.red, RGBColor.green);
+	Cmin = min(RGBColor.blue, Cmin);
 	float Delta = Cmax - Cmin;
 
 	_temp.value = Cmax;
@@ -133,7 +136,7 @@ HSV_Struct RGBToHSV(RGB_Struct RGBColor)
 	else if (Cmax = RGBColor.red)
 	{
 		// it gives an error when using % so i'll use std::fmod instead
-		_temp.hue = (float)(60 * (std::fmod(((RGBColor.green - RGBColor.blue) / Delta * 10000), 6)));
+		_temp.hue = (float)(60 * (fmod(((RGBColor.green - RGBColor.blue) / Delta * 10000), 6)));
 	}
 	else if (Cmax = RGBColor.green)
 	{
@@ -149,7 +152,7 @@ HSV_Struct RGBToHSV(RGB_Struct RGBColor)
 
 
 
-
+#define PI 3.14159265f
 
 
 int main(int argc, char* argv[])
@@ -197,8 +200,40 @@ int main(int argc, char* argv[])
 	//Describe the shape by its vertices
 
 
+	// Number of Exterior Points
+	int numberOfExteriorPoints = 3;
+	float sizeOfCircle = 0.7f;
+
+	// Can't create an array with a variable size so just replace the first number by the value above
+	float proceduralVertices[(3+2) * 3];
+
+	// Do a loop for each exterior vertice,
+	// + the interior one which is 0, 0, 0,
+	// + the end one which is the same as index 1 (not the first point) to close the circle
+	for (int i = 0; i < (numberOfExteriorPoints + 2); i++)
+	{
+		if (i == 0)
+		{
+			proceduralVertices[0] = 0.0f;
+			proceduralVertices[1] = 0.0f;
+			proceduralVertices[2] = 0.0f;
+		}
+		else
+		{
+			proceduralVertices[(3 * i)] = cos(  (i - 1) * PI * 2 / numberOfExteriorPoints  )  * sizeOfCircle;
+
+
+			proceduralVertices[(3 * i) + 1] = sin(  (i - 1) * PI * 2 / numberOfExteriorPoints  )  * sizeOfCircle;
+
+
+			proceduralVertices[(3 * i) + 2] = 0.0f;
+		}
+
+		// cout << proceduralVertices[(3*i)] << "  " << proceduralVertices[(3 * i) +1] << endl;
+	}
+
 	float vertices[] = {
-		
+
 		/*  Broken stuff
 		//// positions             // colors
 		0.0f, -0.8f, 0.0f,      1.0f, 0.0f, 0.0f, //H
@@ -212,12 +247,52 @@ int main(int argc, char* argv[])
 		0.0f,  0.8f, 0.0f,       1.0f, 1.0f, 1.0f,//E
 		*/
 
-		0.0f, -0.8f, 0.0f,      0.0f, 0.0f, 0.0f, 
-		-0.8f, 0.6f, 0.0f,       0.0f, 0.0f, 0.0f,
-		-0.4f, 0.4f, 0.0f,     0.0f, 0.0f, 0.0f,
-		0.0f, 0.8f, 0.0f,     0.0f, 0.0f, 0.0f,
-		0.4f,  0.4f, 0.0f,      0.0f, 0.0f, 0.0f,
-		0.8f,  0.6f, 0.0f,       0.0f, 0.0f, 0.0f,
+
+		/*
+		0.0f, -0.8f, 0.0f,      1.0f, 0.0f, 0.0f,
+		-0.8f, 0.6f, 0.0f,       1.0f, 1.0f, 0.0f,
+		-0.4f, 0.4f, 0.0f,     0.0f, 1.0f, 0.0f,
+		0.0f, 0.8f, 0.0f,     0.0f, 1.0f, 1.0f,
+		0.4f,  0.4f, 0.0f,      0.0f, 0.0f, 1.0f,
+		0.8f,  0.6f, 0.0f,       1.0f, 0.0f, 1.0f,
+		*/
+
+
+		/*
+		//  Circle with the colors in the vertices
+		0.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,	
+		-0.5f, 0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	
+		0.0f, 0.7f, 0.0f,	   0.75f, 0.5f, 0.0f,	
+		0.5f, 0.5f, 0.0f,     0.5f, 1.0f, 0.0f,
+		0.7f, 0.0f, 0.0f,	   0.25f, 1.0f, 0.5f,	
+		0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 1.0f,
+		0.0f, -0.7f, 0.0f,      0.25f, 0.5f, 1.0f,
+		-0.5f, -0.5f, 0.0f,     0.5f, 0.0f, 1.0f,
+		-0.7f, 0.0f, 0.0f,     0.75f, 0.0f, 0.5f,
+		-0.5f, 0.5f, 0.0f,     1.0f, 0.0f, 0.0f, */
+		
+
+		
+		//  Circle with white vertices
+		0.0f, 0.0f, 0.0f,      1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f,     1.0f, 1.0f, 1.0f,
+		-0.25f, 0.6f, 0.0f,		1.0f, 1.0f, 1.0f,
+		0.0f, 0.7f, 0.0f,	   1.0f, 1.0f, 0.0f,
+		0.25f, 0.6f, 0.0f,		1.0f, 1.0f, 1.0f,
+		0.5f, 0.5f, 0.0f,     1.0f, 1.0f, 1.0f,
+		0.6f, 0.25f, 0.0f,		1.0f, 1.0f, 1.0f,
+		0.7f, 0.0f, 0.0f,	   1.0f, 0.0f, 0.0f,
+		0.6f, -0.25f, 0.0f,		1.0f, 1.0f, 1.0f,
+		0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,
+		0.25f, -0.6f, 0.0f,		1.0f, 1.0f, 1.0f,
+		0.0f, -0.7f, 0.0f,      1.0f, 1.0f, 1.0f,
+		-0.25f, -0.6f, 0.0f,		1.0f, 1.0f, 1.0f,
+		-0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,
+		-0.6f, -0.25f, 0.0f,		1.0f, 1.0f, 1.0f,
+		-0.7f, 0.0f, 0.0f,     1.0f, 1.0f, 1.0f,
+		-0.6f, 0.25f, 0.0f,		1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f,     1.0f, 1.0f, 1.0f,
+		
 
 
 
@@ -313,9 +388,6 @@ int main(int argc, char* argv[])
 	};
 
 
-
-
-
 	//Create an ID to be given at object generation
 	unsigned int vbo;
 
@@ -374,16 +446,13 @@ int main(int argc, char* argv[])
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
 	//Finally send the vertices array in the array buffer 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(proceduralVertices), proceduralVertices, GL_STATIC_DRAW);
 
 
 
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
 
 
 
@@ -394,6 +463,12 @@ int main(int argc, char* argv[])
 	glDepthFunc(GL_LESS);
 
 
+
+	//Create a space to save all of our 6 points' hues.
+	float currentGlobalHueOffset = 0.00f;
+
+	//	360 / total of exterior points to divide the color spectrum by
+	float colorOffsetPerPoint = (360.0f / numberOfExteriorPoints);
 
 
 
@@ -434,15 +509,19 @@ int main(int argc, char* argv[])
 		*/
 
 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
-
-
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 128  +2);
 
 
 		//Get the time in seconds 
 		float timeValue = (float)SDL_GetTicks() / 1000;
 
 
+
+		float redColor = 0.00f;
+		float greenColor = 0.00f;
+		float blueColor = 0.00f;
+
+		/* Stuff to interp between 2 colors
 		// I want the color to be a gradient between #1C6CF0 and #7E45B6
 		// 0.11f, 0.42f, 0.94f    &    0.71f, 0.27f, 0.49f
 		// Difference is 0.6f, -0.15f, -0.45f
@@ -461,33 +540,47 @@ int main(int argc, char* argv[])
 		float redColor = 0.11f + (usableTime * 0.89f);
 		float greenColor = 0.42f + (usableTime * 0.56f);
 		float blueColor = 0.94f + (usableTime * 0.06f);
-		int vertexColorLocation = glGetUniformLocation(shaderProgram, "inColor");
+		*/
+
+
+		// Now we're gonna do a little thing called HSV HueShifting
+		// Update the point's hue modifier
+		currentGlobalHueOffset = fmod(timeValue * shiftingSpeed, 360);		
+
+		// Use program
 		glUseProgram(shaderProgram);
+
+
+		/*
+		// "Uniform" is a data state value stuff like "public" or "static"
+		// the INT is the location/ID/stuff of the variable
+		// With this line we say "register the ID of the variable "inColor" in the program "shaderProgram" so I can access it later"
+		int vertexColorLocation = glGetUniformLocation(shaderProgram, "inColor");		
+		// And then we Write the Uniform value whose ID we got beforehand
 		glUniform4f(vertexColorLocation, (redColor), (greenColor), (blueColor), 1.0f);
+		*/
 
 
-		SDL_GL_SwapWindow(Window); // Swapbuffer
-
+		// Position to float vertically
 		float xPosition = 1.0f;
 		int XvertexPosLocation = glGetUniformLocation(shaderProgram, "XanimPos");
-		glUseProgram(shaderProgram);
 		glUniform1f(XvertexPosLocation, xPosition);
 		float yPosition = (cos(timeValue * 1) / 7.0f);
 		int YvertexPosLocation = glGetUniformLocation(shaderProgram, "YanimPos");
-		glUseProgram(shaderProgram);
 		glUniform1f(YvertexPosLocation, yPosition);
+
+		glUniform1f(glGetUniformLocation(shaderProgram, "hueOffsetPerVertex"), colorOffsetPerPoint);
+		glUniform1f(glGetUniformLocation(shaderProgram, "globalHueOffset"), currentGlobalHueOffset);
+
+		SDL_GL_SwapWindow(Window); // Swapbuffer		
 	}
 	// Quit
 	SDL_DestroyWindow(Window);
 	SDL_GL_DeleteContext(Context);
 
-
-
-	cin.get();
+	//cin.get();
 	return 0;
 }
-
-
 
 /*
 #include <iostream>
